@@ -1,15 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bài 1 – Hello Cloud</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:860px;margin:2rem auto;padding:0 1rem;line-height:1.6}
+  table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:8px;text-align:left}
+  th{background:#f0f0f0}
+</style>
+</head>
+<body>
+<h1>Bài 1: Lập trình trên máy ảo đám mây đầu tiên</h1>
+<p>Sinh viên: Nguyễn Minh Phong – MSSV: 2324802010315</p>
 
-<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bài 1 – Hello Cloud</title><style>:root{font:16px system-ui,sans-serif;color:#172033;background:#f4f7fb}body{max-width:960px;margin:auto;padding:32px 20px;line-height:1.6}h1,h2{color:#123b68}section{background:#fff;border:1px solid #dce5ef;border-radius:12px;padding:20px;margin:18px 0}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;border:1px solid #dce5ef;padding:11px;vertical-align:top}th{background:#eaf2fb}.fill{color:#7a3e00;font-weight:600}code{background:#edf2f7;padding:2px 5px;border-radius:4px}</style></head><body>
-<h1>Bài 1 – Lập trình trên máy ảo đám mây đầu tiên</h1>
-<section><p><strong>Hello Cloud API</strong> trả về thông tin máy tại <code>GET /</code>. Ứng dụng Express nằm trong <code>src/app.js</code>, còn <code>src/server.js</code> chỉ khởi động máy chủ để có thể tái sử dụng ứng dụng ở bài serverless.</p><p>Điền các ô màu nâu bằng số đo thực tế trước khi nộp.</p></section>
-<section><h2>So sánh môi trường</h2><div class="scroll"><table><thead><tr><th>Tiêu chí</th><th>Máy cá nhân</th><th>Codespace</th></tr></thead><tbody>
-<tr><td>Thời gian đến khi chạy <code>node -v</code></td><td class="fill">[Điền thời gian đo trên máy cá nhân]</td><td class="fill">[Điền thời gian từ lúc bấm Create đến khi terminal sẵn sàng]</td></tr>
-<tr><td>Số CPU, RAM</td><td class="fill">[Điền cấu hình máy cá nhân]</td><td class="fill">[Điền cpus và memoryGB từ GET /]</td></tr>
-<tr><td>Hệ điều hành</td><td class="fill">[Điền hệ điều hành máy cá nhân]</td><td class="fill">[Điền platform từ GET /]</td></tr>
-<tr><td>Truy cập từ thiết bị khác</td><td>Cần cấu hình mạng nội bộ, VPN hoặc máy chủ riêng.</td><td>URL forwarded port HTTPS; đặt Public để thử trên điện thoại, sau đó chuyển lại Private.</td></tr>
-<tr><td>Chi phí, cách đo</td><td>Chi phí thiết bị, điện và khấu hao; tự ước tính.</td><td class="fill">[Điền core-hours thực tế từ GitHub Settings → Billing → Usage]</td></tr>
-</tbody></table></div></section>
-<section><h2>Năm đặc tính điện toán đám mây NIST</h2><ol><li><strong>Tự phục vụ theo yêu cầu:</strong> tự tạo Codespace từ nút Create mà không cần nhân viên cấp máy thủ công.</li><li><strong>Truy cập mạng rộng:</strong> mở API qua URL HTTPS forwarded port và thử từ điện thoại khi cổng đặt Public.</li><li><strong>Gộp tài nguyên:</strong> Codespaces chạy trên hạ tầng dùng chung; nhà cung cấp phân bổ tài nguyên cho nhiều khách hàng. Trường host là quan sát ở một lần chạy.</li><li><strong>Co giãn nhanh:</strong> tạo/dừng môi trường theo nhu cầu minh họa việc cấp phát và thu hồi nhanh, dù chưa thử tự động thay đổi tài nguyên theo tải.</li><li><strong>Dịch vụ đo lường được:</strong> xem core-hours trong Billing Usage để theo dõi mức dùng tài nguyên.</li></ol></section>
-<section><h2>Câu hỏi phản biện</h2><ol><li><strong>Host sau Stop/Start:</strong> so sánh kết quả GET / trước và sau khi dừng rồi khởi động Codespace. Nếu host đổi, workload có thể đã được gán lên host khác trong hạ tầng dùng chung. Nếu không đổi, chỉ hai lần quan sát có cùng tên; điều đó không chứng minh hạ tầng không được gộp.</li><li><strong>Phân loại Codespaces:</strong> gần PaaS, vì GitHub quản lý hạ tầng và điều phối môi trường phát triển; image cung cấp OS/runtime ban đầu, còn sinh viên quản lý mã nguồn và ứng dụng, có thể cài thêm gói. Ranh giới phân loại phụ thuộc phạm vi dịch vụ xét đến.</li><li><strong>Hạn chế cài trên máy lab được khắc phục:</strong> tránh cài/cập nhật riêng trên từng máy và có môi trường nhất quán, dùng được từ nhiều thiết bị có Internet. Rủi ro mới là phụ thuộc kết nối/nhà cung cấp và phải bảo vệ quyền truy cập, dữ liệu khi mở dịch vụ ra mạng.</li></ol></section>
-<footer><small>Bài thực hành Chương 1, mục 1.2–1.5. Bật GitHub Pages từ nhánh main, thư mục /docs.</small></footer></body></html>
+<h2>Bảng so sánh</h2>
+<table>
+<tr><th>Tiêu chí</th><th>Máy cá nhân</th><th>Codespace</th></tr>
+<tr><td>Thời gian đến khi chạy được <code>node -v</code></td><td>[ĐIỀN ~… phút]</td><td>[ĐIỀN ~… phút]</td></tr>
+<tr><td>Số CPU, RAM</td><td>[ĐIỀN]</td><td>[ĐIỀN từ API: cpus=…, memoryGB=…]</td></tr>
+<tr><td>Hệ điều hành</td><td>[ĐIỀN Windows …]</td><td>[ĐIỀN Linux …]</td></tr>
+<tr><td>Truy cập từ thiết bị khác</td><td>Phải tự cấu hình mạng/cổng, thường khó</td><td>Đặt cổng Public, mở URL .app.github.dev trên điện thoại</td></tr>
+<tr><td>Chi phí, đo bằng gì</td><td>Điện, khấu hao máy, không đo theo lần dùng</td><td>[ĐIỀN … core-giờ] (Settings → Billing → Usage)</td></tr>
+</table>
+
+<h2>5 đặc tính NIST</h2>
+<ol>
+<li><b>Tự phục vụ theo yêu cầu:</b> tự tạo Codespace bằng một nút bấm, không cần quản trị viên.</li>
+<li><b>Truy cập mạng rộng:</b> mở API từ điện thoại qua URL công khai của cổng 3000.</li>
+<li><b>Gộp tài nguyên:</b> CPU, RAM, hostname của API đến từ kho máy chủ dùng chung của GitHub.</li>
+<li><b>Co giãn nhanh:</b> [ĐIỀN ví dụ: đổi machine type, hoặc tạo/dừng Codespace trong vài giây].</li>
+<li><b>Dịch vụ đo lường được:</b> mức dùng được tính bằng core-giờ trong trang Billing Usage.</li>
+</ol>
+
+<h2>Câu hỏi phản biện</h2>
+<h3>1. Trường host có đổi sau Stop/Start không?</h3>
+<p>[ĐIỀN kết quả bạn đo thật: host trước = …, sau = …]. Dù đổi hay không, máy ảo vẫn được cấp từ kho tài nguyên chung: người dùng chọn cấu hình, còn máy vật lý bên dưới do nhà cung cấp quyết định và có thể khác mỗi lần.</p>
+<h3>2. Codespaces là IaaS, PaaS hay SaaS?</h3>
+<p>Gần với PaaS (môi trường phát triển theo dịch vụ). GitHub quản lý hạ tầng, ảo hóa và hệ điều hành nền; sinh viên quản lý mã nguồn và cấu hình runtime (devcontainer, Node.js). Không phải SaaS vì sinh viên không chỉ dùng phần mềm có sẵn, mà tự viết và chạy ứng dụng của mình.</p>
+<h3>3. Hạn chế truyền thống đã khắc phục và rủi ro mới</h3>
+<p>Khắc phục: (1) mỗi máy phòng lab cài môi trường mất thời gian và dễ lệch phiên bản; (2) môi trường và dữ liệu gắn với một máy vật lý, không truy cập được từ thiết bị khác. Rủi ro mới: phụ thuộc Internet và nhà cung cấp, cùng nguy cơ lộ dịch vụ hoặc phát sinh chi phí ngoài ý muốn (ví dụ để cổng Public).</p>
+</body>
+</html>
