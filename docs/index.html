@@ -8,34 +8,46 @@
   body{font-family:system-ui,sans-serif;max-width:860px;margin:2rem auto;padding:0 1rem;line-height:1.6}
   table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:8px;text-align:left}
   th{background:#f0f0f0}
+  pre{background:#f6f8fa;padding:12px;overflow-x:auto;border-radius:6px}
 </style>
 </head>
 <body>
 <h1>Bài 1: Lập trình trên máy ảo đám mây đầu tiên</h1>
 <p>Sinh viên: Nguyễn Minh Phong – MSSV: 2324802010315</p>
 
+<h2>Kết quả API <code>GET /</code> trên Codespace</h2>
+<pre>{
+  "message": "Xin chào từ đám mây!",
+  "host": "codespaces-811ce0",
+  "platform": "Linux 6.8.0-1064-azure",
+  "cpus": 2,
+  "memoryGB": 7.8,
+  "uptimeSec": 844,
+  "time": "2026-11-05T06:59:02.059Z"
+}</pre>
+
 <h2>Bảng so sánh</h2>
 <table>
 <tr><th>Tiêu chí</th><th>Máy cá nhân</th><th>Codespace</th></tr>
-<tr><td>Thời gian đến khi chạy được <code>node -v</code></td><td>[ĐIỀN ~… phút]</td><td>[ĐIỀN ~… phút]</td></tr>
-<tr><td>Số CPU, RAM</td><td>[ĐIỀN]</td><td>[ĐIỀN từ API: cpus=…, memoryGB=…]</td></tr>
-<tr><td>Hệ điều hành</td><td>[ĐIỀN Windows …]</td><td>[ĐIỀN Linux …]</td></tr>
-<tr><td>Truy cập từ thiết bị khác</td><td>Phải tự cấu hình mạng/cổng, thường khó</td><td>Đặt cổng Public, mở URL .app.github.dev trên điện thoại</td></tr>
-<tr><td>Chi phí, đo bằng gì</td><td>Điện, khấu hao máy, không đo theo lần dùng</td><td>[ĐIỀN … core-giờ] (Settings → Billing → Usage)</td></tr>
+<tr><td>Thời gian đến khi chạy được <code>node -v</code></td><td>Đã cài sẵn Node v24.21.0 nên chạy ngay được; nếu cài mới ước lượng ~5 phút (tải bộ cài, cài đặt, mở terminal)</td><td>Khoảng 1–2 phút (ước lượng)</td></tr>
+<tr><td>Số CPU, RAM</td><td>Intel Core i5-13420H (8 nhân, 12 luồng), RAM 16 GB (15,7 GB khả dụng)</td><td>2 CPU, 7,8 GB RAM (từ API: cpus=2, memoryGB=7.8)</td></tr>
+<tr><td>Hệ điều hành</td><td>Windows 11 Home Single Language, phiên bản 25H2 (build 26200.9711)</td><td>Linux 6.8.0-1064-azure (máy ảo, hostname codespaces-811ce0)</td></tr>
+<tr><td>Truy cập từ thiết bị khác</td><td>Phải tự cấu hình mạng/cổng, thường khó</td><td>Đặt cổng 3000 sang Public, mở URL .app.github.dev trên điện thoại</td></tr>
+<tr><td>Chi phí, đo bằng gì</td><td>Điện, khấu hao máy, không đo theo lần dùng</td><td>Đo bằng core-giờ ở Settings → Billing → Usage; số liệu chưa hiển thị do cập nhật chậm (xem ảnh chụp trang Billing)</td></tr>
 </table>
 
 <h2>5 đặc tính NIST</h2>
 <ol>
-<li><b>Tự phục vụ theo yêu cầu:</b> tự tạo Codespace bằng một nút bấm, không cần quản trị viên.</li>
+<li><b>Tự phục vụ theo yêu cầu:</b> tự tạo Codespace bằng một nút bấm, không cần quản trị viên cấp máy.</li>
 <li><b>Truy cập mạng rộng:</b> mở API từ điện thoại qua URL công khai của cổng 3000.</li>
-<li><b>Gộp tài nguyên:</b> CPU, RAM, hostname của API đến từ kho máy chủ dùng chung của GitHub.</li>
-<li><b>Co giãn nhanh:</b> [ĐIỀN ví dụ: đổi machine type, hoặc tạo/dừng Codespace trong vài giây].</li>
+<li><b>Gộp tài nguyên:</b> API báo host <code>codespaces-811ce0</code>, 2 CPU, 7,8 GB RAM: một phần nhỏ của kho máy chủ dùng chung của GitHub, không phải máy riêng của em.</li>
+<li><b>Co giãn nhanh:</b> có thể đổi cấu hình máy (machine type) từ 2 lõi lên nhiều lõi hơn, hoặc tạo/dừng Codespace trong vài phút; hiện đang dùng bản 2 lõi.</li>
 <li><b>Dịch vụ đo lường được:</b> mức dùng được tính bằng core-giờ trong trang Billing Usage.</li>
 </ol>
 
 <h2>Câu hỏi phản biện</h2>
 <h3>1. Trường host có đổi sau Stop/Start không?</h3>
-<p>[ĐIỀN kết quả bạn đo thật: host trước = …, sau = …]. Dù đổi hay không, máy ảo vẫn được cấp từ kho tài nguyên chung: người dùng chọn cấu hình, còn máy vật lý bên dưới do nhà cung cấp quyết định và có thể khác mỗi lần.</p>
+<p>Lần đo 1: host = <code>codespaces-811ce0</code>. Lần đo 2 (sau khi Stop rồi Start): host = <code>codespaces-811ce0</code> (không đổi), nhưng <code>uptimeSec</code> giảm từ 844 xuống 706, chứng tỏ máy ảo đã tắt và khởi động lại. Tên máy gắn với codespace của em nên giữ nguyên, còn máy vật lý bên dưới do GitHub chọn và không hiển thị cho người dùng. Dù host có đổi hay không, máy ảo vẫn được cấp từ kho tài nguyên chung: người dùng chọn cấu hình, còn máy vật lý bên dưới do nhà cung cấp quyết định và có thể khác mỗi lần.</p>
 <h3>2. Codespaces là IaaS, PaaS hay SaaS?</h3>
 <p>Gần với PaaS (môi trường phát triển theo dịch vụ). GitHub quản lý hạ tầng, ảo hóa và hệ điều hành nền; sinh viên quản lý mã nguồn và cấu hình runtime (devcontainer, Node.js). Không phải SaaS vì sinh viên không chỉ dùng phần mềm có sẵn, mà tự viết và chạy ứng dụng của mình.</p>
 <h3>3. Hạn chế truyền thống đã khắc phục và rủi ro mới</h3>
