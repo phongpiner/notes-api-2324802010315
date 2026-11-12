@@ -3,17 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bài 1 – Hello Cloud</title>
+<title>Điện toán đám mây – Bài 1 và Bài 2</title>
 <style>
   body{font-family:system-ui,sans-serif;max-width:860px;margin:2rem auto;padding:0 1rem;line-height:1.6}
   table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:8px;text-align:left}
   th{background:#f0f0f0}
   pre{background:#f6f8fa;padding:12px;overflow-x:auto;border-radius:6px}
+  nav a{margin-right:1rem}
+  hr{margin:3rem 0}
 </style>
 </head>
 <body>
-<h1>Bài 1: Lập trình trên máy ảo đám mây đầu tiên</h1>
 <p>Sinh viên: Nguyễn Minh Phong – MSSV: 2324802010315</p>
+<nav><a href="#bai1">Bài 1</a><a href="#bai2">Bài 2</a></nav>
+
+<h1 id="bai1">Bài 1: Lập trình trên máy ảo đám mây đầu tiên</h1>
 
 <h2>Kết quả API <code>GET /</code> trên Codespace</h2>
 <pre>{
@@ -52,5 +56,60 @@
 <p>Gần với PaaS (môi trường phát triển theo dịch vụ). GitHub quản lý hạ tầng, ảo hóa và hệ điều hành nền; sinh viên quản lý mã nguồn và cấu hình runtime (devcontainer, Node.js). Không phải SaaS vì sinh viên không chỉ dùng phần mềm có sẵn, mà tự viết và chạy ứng dụng của mình.</p>
 <h3>3. Hạn chế truyền thống đã khắc phục và rủi ro mới</h3>
 <p>Khắc phục: (1) mỗi máy phòng lab cài môi trường mất thời gian và dễ lệch phiên bản; (2) môi trường và dữ liệu gắn với một máy vật lý, không truy cập được từ thiết bị khác. Rủi ro mới: phụ thuộc Internet và nhà cung cấp, cùng nguy cơ lộ dịch vụ hoặc phát sinh chi phí ngoài ý muốn (ví dụ để cổng Public).</p>
+
+<hr>
+
+<h1 id="bai2">Bài 2: Ảo hóa, container và mô phỏng trung tâm dữ liệu</h1>
+
+<h2>Phần A – Container</h2>
+<p>Image đã phát hành công khai trên GHCR: <code>ghcr.io/phongpiner/notes-api:1.0</code> (digest <code>sha256:8a3e65ccf0a5d6cbf263368cf4c28c12db1492ba6e326e49bc22650d06154431</code>).
+Link package: <a href="https://github.com/users/phongpiner/packages/container/package/notes-api">github.com/users/phongpiner/packages/container/package/notes-api</a>.
+Sau khi đăng xuất khỏi GHCR, lệnh <code>docker pull ghcr.io/phongpiner/notes-api:1.0</code> vẫn kéo được image, chứng tỏ package ở chế độ Public. Dockerfile nằm ở thư mục gốc của repo.</p>
+
+<h3>Kết quả hai bản sao</h3>
+<pre>notes1  (cổng 3000, không giới hạn)
+{"message":"Xin chào từ đám mây!","host":"e572ce46403e","platform":"Linux 6.8.0-1070-azure","cpus":2,"memoryGB":7.8,"uptimeSec":906,...}
+
+notes2  (cổng 3001, --cpus=0.5 --memory=128m)
+{"message":"Xin chào từ đám mây!","host":"3d5bc1c9dff6","platform":"Linux 6.8.0-1070-azure","cpus":2,"memoryGB":7.8,"uptimeSec":906,...}
+
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     PIDS
+3d5bc1c9dff6   notes2    0.00%     15.28MiB / 128MiB     11.94%    7
+e572ce46403e   notes1    0.00%     17.06MiB / 7.756GiB   0.21%     7</pre>
+<p>Trường <code>host</code> của hai bản sao khác nhau (là ID container), còn <code>cpus</code>, <code>memoryGB</code> và <code>uptimeSec</code> giống nhau và bằng của máy Codespace. Giới hạn 128 MiB của notes2 chỉ thấy ở cột MEM USAGE / LIMIT của <code>docker stats</code>.</p>
+
+<h3>So sánh máy ảo với container</h3>
+<table>
+<tr><th>Tiêu chí</th><th>Codespace (máy ảo)</th><th>Container notes2</th></tr>
+<tr><td>Thời gian khởi động</td><td>Khoảng 1–2 phút (ước lượng, từ bài 1)</td><td>0,370 giây (<code>time docker run --rm notes-api:1.0 node -e "1"</code>)</td></tr>
+<tr><td>Kích thước</td><td>15 GB-tháng hạn mức đĩa</td><td>251 MB trên đĩa (63,3 MB dung lượng nén), theo <code>docker images</code></td></tr>
+<tr><td>Nhân hệ điều hành</td><td>Riêng</td><td>Dùng chung với máy chủ: <code>uname -r</code> ngoài và trong container đều là <code>6.8.0-1070-azure</code></td></tr>
+<tr><td>Mức cô lập</td><td>Cô lập ở mức phần cứng ảo, mỗi máy ảo có nhân và hệ điều hành riêng</td><td>Cô lập tiến trình bằng namespaces, giới hạn tài nguyên bằng cgroups, dùng chung nhân nên cô lập yếu hơn</td></tr>
+</table>
+
+<h2>Phần B – Mô phỏng với CloudSim Plus</h2>
+<p>Ví dụ <code>BasicFirstExample</code> gốc có 1 máy chủ 8 lõi, 2 máy ảo (mỗi máy ảo 4 lõi) và 4 cloudlet (mỗi cloudlet 2 lõi, 10000 MI). Mỗi lần chạy chỉ đổi đúng một yếu tố so với bản gốc.</p>
+<table>
+<tr><th>Lần</th><th>Thay đổi</th><th>Thời điểm hoàn thành cloudlet cuối (giây mô phỏng)</th><th>Ghi chú</th></tr>
+<tr><td>0</td><td>Giữ nguyên</td><td>20,1</td><td>4 cloudlet, bắt đầu 0,1</td></tr>
+<tr><td>1</td><td>Nhân đôi <code>VMS</code> (2 → 4)</td><td>45,6</td><td>Vm 2 và Vm 3 không đặt được; cloudlet bắt đầu muộn ở 25,6</td></tr>
+<tr><td>2</td><td>Nhân đôi <code>CLOUDLETS</code> (4 → 8)</td><td>40,1</td><td>Bảng kết quả của lần này chỉ in 4 dòng cloudlet (ID 0–3), tất cả kết thúc ở 40,1</td></tr>
+<tr><td>3</td><td><code>CloudletSchedulerSpaceShared</code></td><td>20,1</td><td>Trùng lần 0</td></tr>
+<tr><td>3b (bổ sung ngoài đề)</td><td>Space-shared và <code>CLOUDLETS</code> = 8</td><td>40,3</td><td>4 cloudlet đầu kết thúc ở 20,1; 4 cloudlet sau bắt đầu 20,2 và kết thúc 40,3</td></tr>
+</table>
+
+<h3>Giải thích lần 1</h3>
+<p>Bốn máy ảo cần 16 lõi trong khi máy chủ chỉ có 8 lõi. Log báo <code>No suitable host found for Vm 2</code> và <code>Vm 3</code>, rồi <code>2 of the requested 4 VMs couldn't be created because suitable Hosts weren't found</code>. Nhà môi giới (broker) thử đặt lại sau mỗi khoảng 5 giây (ở 0,00, 5,10, 10,20, 15,30, 20,40 và 25,50), đến 25,60 thì chuyển Vm 2 và Vm 3 vào danh sách thất bại. Các cloudlet chỉ bắt đầu chạy ở 25,6 (đúng lúc đó) và chạy trên Vm 0 và Vm 1, nên hoàn thành ở 45,6 thay vì 20,1. Thêm máy ảo không làm nhanh hơn mà còn chậm hơn vì tài nguyên máy chủ không đủ.</p>
+
+<h2>Câu hỏi phản biện</h2>
+<h3>1. Vì sao notes2 vẫn báo <code>memoryGB</code> bằng RAM máy chủ?</h3>
+<p>API đọc thông tin bằng <code>os.totalmem()</code> và <code>os.cpus()</code>, các hàm này lấy dữ liệu từ nhân hệ điều hành dùng chung với máy chủ, nên container báo 2 CPU và 7,8 GB giống Codespace dù chạy với <code>--cpus=0.5 --memory=128m</code>. Giới hạn do cgroups áp đặt từ bên ngoài, chỉ thể hiện ở <code>docker stats</code> (128MiB). Hệ quả: ứng dụng tự dựa vào <code>totalmem()</code> để quyết định dung lượng bộ nhớ có thể tính sai, rồi bị hệ thống dừng khi vượt giới hạn. Ứng dụng Node.js hoặc Java chạy trong container nên cấu hình bộ nhớ heap tường minh theo giới hạn của container (với Node.js là <code>--max-old-space-size</code>, với Java là <code>-Xmx</code> hoặc <code>-XX:MaxRAMPercentage</code>) thay vì tin vào số liệu của máy chủ.</p>
+
+<h3>2. Time-shared và space-shared khác nhau ra sao?</h3>
+<p>Với 4 cloudlet (lần 0 và lần 3) hai chính sách cho cùng kết quả 20,1 giây, vì mỗi máy ảo có 4 lõi và mỗi máy ảo nhận 2 cloudlet 2 lõi nên không có tranh chấp lõi. Khác biệt chỉ lộ ra khi cloudlet vượt số lõi: với 8 cloudlet, time-shared (lần 2) kéo dài thời gian của cloudlet lên 40,1 vì các cloudlet chia nhau năng lực lõi; space-shared (lần 3b) cho mỗi cloudlet đủ lõi nên 4 cloudlet đầu xong ở 20,1, 4 cloudlet sau phải xếp hàng chờ, bắt đầu 20,2 và xong ở 40,3. Thời điểm hoàn thành cuối gần như bằng nhau (40,1 so với 40,3), khác nhau ở chỗ ai phải chờ.</p>
+<p>Một nhà cung cấp hướng thị trường nhiều khả năng chọn time-shared cho gói giá rẻ: cho phép nhiều khách hàng dùng chung một máy chủ (cấp phát vượt mức), giảm chi phí trên mỗi khách, đổi lại hiệu năng dao động khi tải tăng. Space-shared hợp với gói cao cấp vì mỗi tác vụ nhận lõi riêng, hiệu năng ổn định nhưng nhà cung cấp phải để dành lõi, nên giá cao hơn.</p>
+
+<h3>3. Mô phỏng giúp ích gì và có thể sai lệch ở đâu?</h3>
+<p>Mô phỏng cho phép thử nhiều cấu hình rẻ và nhanh trước khi thuê hạ tầng thật. Ví dụ lần 1 cho thấy 4 máy ảo 4 lõi không đặt vừa trên máy chủ 8 lõi, một lỗi mà bên ngoài thực tế sẽ tốn tiền mới phát hiện. Kết quả có thể sai lệch với thực tế vì mô hình đơn giản hóa: không có nhiễu từ các khách hàng khác trên cùng máy chủ, độ trễ mạng, hỏng hóc phần cứng hay biến động tải, và kết quả phụ thuộc hoàn toàn vào tham số đầu vào. Một số hành vi chỉ là đặc điểm của công cụ, như việc broker thử đặt lại máy ảo nhiều lần làm cloudlet bắt đầu muộn ở lần 1.</p>
 </body>
 </html>
