@@ -14,7 +14,7 @@
 </style>
 </head>
 <body>
-<nav><a href="#bai1">Bài 1</a><a href="#bai2">Bài 2</a></nav>
+<nav><a href="#bai1">Bài 1</a><a href="#bai2">Bài 2</a><a href="#bai3">Bài 3</a><a href="#bai4">Bài 4</a></nav>
 
 <h1 id="bai1">Bài 1: Lập trình trên máy ảo đám mây đầu tiên</h1>
 
@@ -151,6 +151,64 @@ e572ce46403e   notes1    0.00%     17.06MiB / 7.756GiB   0.21%     7</pre>
 <p>Một tài liệu MongoDB bị giới hạn 16 MB, và gói miễn phí chỉ có 512 MB dung lượng (nên kiểm tra lại trong trang Atlas); lưu nội dung tệp vào tài liệu làm cạn dung lượng nhanh. Nội dung tệp cũng làm tài liệu nặng hơn: mỗi lần đọc ghi chú đều kéo cả tệp qua mạng, bộ nhớ đệm của cơ sở dữ liệu bị chiếm bởi dữ liệu nhị phân, và mọi byte phải được sao chép sang cả 3 nút của cụm, vào cả bản sao lưu. Kho đối tượng sinh ra để lưu tệp lớn rẻ hơn và phục vụ trực tiếp qua HTTP cho trình duyệt mà không qua API. Cơ sở dữ liệu chỉ giữ siêu dữ liệu nhỏ (tiêu đề, thẻ, URL), nhờ đó truy vấn và chỉ mục nhanh.</p>
 <h3>3. Số 3 của Atlas và HDFS</h3>
 <p>Mục tiêu chung: chịu lỗi. Với 3 bản, hệ thống vẫn còn dữ liệu và tiếp tục hoạt động khi mất một nút (trường hợp HDFS vẫn còn bản thứ hai và thứ ba trong khi khối được sao chép lại cho đủ 3). Ở Atlas, con số 3 còn cho phép bầu primary mới khi cần đa số (2/3 nút). Khác nhau ở đơn vị nhân bản: Atlas nhân bản toàn bộ tập dữ liệu, mọi nút giữ một bản đầy đủ và các secondary sao chép từ nhật ký thao tác (oplog) của primary; HDFS nhân bản từng khối (mặc định 128 MB), 3 bản của mỗi khối nằm trên 3 DataNode khác nhau và không DataNode nào giữ toàn bộ dữ liệu, còn NameNode chỉ giữ siêu dữ liệu về khối nằm ở đâu.</p>
+<hr>
 
+<h1 id="bai4">Bài 4: Bảo mật ứng dụng đám mây</h1>
+
+<h2>Ba lớp bảo vệ đã cài</h2>
+<ol>
+<li><b>Bí mật không nằm trong mã:</b> <code>MONGODB_URI</code>, <code>SUPABASE_URL</code>, <code>SUPABASE_SERVICE_KEY</code> và <code>JWT_SECRET</code> nằm trong Codespaces Secrets; Push protection và Dependabot alerts đã bật. Lịch sử Git đã kiểm tra bằng <code>git log --all -p | grep -iE "mongodb\+srv|supabase|secret"</code>: [ĐIỀN kết quả, ví dụ "không thấy chuỗi bí mật thật"].</li>
+<li><b>Đăng nhập và chỉ thấy dữ liệu của mình:</b> mật khẩu băm bằng bcrypt, đăng nhập trả JWT hết hạn sau 1 giờ, mọi route <code>/notes</code> yêu cầu token và lọc theo <code>owner</code>; truy cập ghi chú của người khác trả 404 (không tiết lộ ghi chú có tồn tại). Chống NoSQL injection bằng kiểm tra kiểu chuỗi và <code>mongoose.set('sanitizeFilter', true)</code>; thêm <code>helmet</code>, giới hạn thân yêu cầu 100 KB và giới hạn tốc độ 20 yêu cầu/15 phút cho <code>/auth</code>.</li>
+<li><b>Quét lỗ hổng:</b> <code>npm audit --omit=dev</code> và Trivy trên hai image (xem Phần C).</li>
+</ol>
+
+<h2>Kết quả kiểm thử bảo mật</h2>
+<table>
+<tr><th>Tình huống</th><th>Mong đợi</th><th>Thực tế</th></tr>
+<tr><td><code>GET /notes</code> không token</td><td>401</td><td>[ĐIỀN]</td></tr>
+<tr><td><code>GET /notes</code> có token</td><td>200</td><td>[ĐIỀN]</td></tr>
+<tr><td>Đăng nhập với <code>{"email":{"$gt":""}}</code></td><td>401</td><td>[ĐIỀN]</td></tr>
+<tr><td>Người dùng B đọc, sửa, xóa ghi chú của A</td><td>404</td><td>[ĐIỀN]</td></tr>
+<tr><td>25 lần đăng nhập sai liên tiếp</td><td>429 từ lần thứ 21 trong 15 phút</td><td>[ĐIỀN: ví dụ "từ lần thứ …"; ghi rõ đã khởi động lại máy chủ trước khi đo hay chưa]</td></tr>
+</table>
+<p><code>npm audit --omit=dev</code>: [ĐIỀN kết quả, ví dụ "found 0 vulnerabilities"]. Cảnh báo Dependabot: [ĐIỀN: có hoặc không].</p>
+
+<h2>Ảnh minh chứng</h2>
+<p>Lịch sử Git và cài đặt bảo mật của repo:</p>
+<p><img src="bai4/01-git-log.png" alt="Kết quả git log" style="max-width:100%"></p>
+<p><img src="bai4/02-push-protection.png" alt="Push protection và Dependabot" style="max-width:100%"></p>
+<p>Kiểm thử xác thực và phân quyền (401, 200, 404):</p>
+<p><img src="bai4/03-401-200.png" alt="Kiểm thử 401 và 200" style="max-width:100%"></p>
+<p><img src="bai4/04-404.png" alt="Kiểm thử chéo trả 404" style="max-width:100%"></p>
+<p>Giới hạn tốc độ (429):</p>
+<p><img src="bai4/05-429.png" alt="Giới hạn tốc độ trả 429" style="max-width:100%"></p>
+<p>Quét lỗ hổng:</p>
+<p><img src="bai4/06-trivy.png" alt="Kết quả Trivy và kích thước image" style="max-width:100%"></p>
+<p><img src="bai4/07-npm-audit-dependabot.png" alt="npm audit và Dependabot" style="max-width:100%"></p>
+
+<h2>Phần C – So sánh quét lỗ hổng hai image</h2>
+<table>
+<tr><th>Image</th><th>Kích thước</th><th>HIGH</th><th>CRITICAL</th></tr>
+<tr><td><code>node:22-alpine</code></td><td>289 MB</td><td>10</td><td>0</td></tr>
+<tr><td><code>node:22</code></td><td>1,67 GB</td><td>479</td><td>20</td></tr>
+</table>
+<p>Số liệu lấy bằng Trivy, ngày quét 26/11/2026; cơ sở dữ liệu lỗ hổng thay đổi theo ngày nên con số có thể khác khi quét lại. Với <code>node:22</code>, Trivy in hai dòng <code>Total</code> (489 lỗ hổng gồm 469 HIGH và 20 CRITICAL, cùng 10 HIGH và 0 CRITICAL); bảng ghi tổng của hai dòng này: 469 + 10 = 479 HIGH, 20 + 0 = 20 CRITICAL.</p>
+
+<h2>Phần D – Phân tích quyết định mở Network Access 0.0.0.0/0</h2>
+<table>
+<tr><th>Nội dung</th><th>Phân tích</th></tr>
+<tr><td>Rủi ro cụ thể</td><td>Bất kỳ địa chỉ IP nào trên Internet cũng được thử kết nối tới cụm. Nếu chuỗi kết nối bị lộ, kẻ tấn công kết nối được từ bất kỳ đâu, vì danh sách IP không còn là lớp chặn nào. Cụm cũng chịu thử mật khẩu hàng loạt và nếu Atlas hoặc trình điều khiển có lỗ hổng chưa vá thì bề mặt tiếp xúc rộng hơn. Gói miễn phí giới hạn 100 thao tác/giây nên một đợt tấn công dễ làm nghẽn dịch vụ.</td></tr>
+<tr><td>Biện pháp đang bù trừ</td><td>Người dùng <code>notes_app</code> chỉ có quyền <code>readWrite</code> trên cơ sở dữ liệu <code>notes</code> (lộ cũng không đụng tới cơ sở dữ liệu khác hay quản trị cụm); mật khẩu sinh ngẫu nhiên; Atlas bắt buộc TLS; bí mật nằm trong Codespaces Secrets thay vì trong mã; Push protection chặn đẩy nhầm bí mật lên Git.</td></tr>
+<tr><td>Phương án tốt hơn nếu có ngân sách</td><td>Chạy ứng dụng ở nơi có IP đi ra cố định (máy chủ hoặc cổng NAT có IP tĩnh) và chỉ cho phép địa chỉ đó trong Network Access. Tốt hơn nữa là Private Endpoint hoặc VPC peering để lưu lượng không đi qua Internet công cộng; các tính năng này thuộc gói trả phí của Atlas (nhóm cụm chuyên dụng, nên kiểm tra lại trên trang giá hiện hành).</td></tr>
+</table>
+<p>Lưu ý thêm: bucket Supabase <code>attachments</code> đặt Public (theo Bài 3), nên ai có URL của tệp đều tải được dù không đăng nhập; kiểm soát theo chủ sở hữu mới áp dụng cho ghi chú chứ chưa cho tệp. Nếu tệp nhạy cảm thì cần bucket riêng tư và URL có chữ ký có thời hạn.</p>
+
+<h2>Câu hỏi phản biện</h2>
+<h3>1. Token JWT bị lộ trong 1 giờ</h3>
+<p>JWT không lưu trên máy chủ nên máy chủ không thu hồi được từng token: trong 1 giờ kẻ có token hành động như người dùng đó. Việc duy nhất còn lại là đổi <code>JWT_SECRET</code>, nhưng khi đó mọi người dùng đều bị đăng xuất. Một cách khắc phục là thêm danh sách thu hồi (hoặc trường <code>tokenVersion</code> trong tài liệu người dùng) và kiểm tra ở mỗi yêu cầu. Chi phí: mỗi yêu cầu phải thêm một lần tra cứu cơ sở dữ liệu hoặc bộ đệm, hệ thống mất tính không trạng thái, cần hạ tầng lưu danh sách (ví dụ Redis, với chi phí vận hành riêng). Cách thứ hai là token truy cập rất ngắn (5–15 phút) kèm refresh token lưu phía máy chủ và xoay vòng: thu hẹp thời gian bị lộ nhưng thêm luồng làm mới token và một lần ghi cơ sở dữ liệu mỗi lần làm mới.</p>
+<h3>2. Vì sao image Alpine thường có ít lỗ hổng hơn?</h3>
+<p>Alpine chỉ chứa một tập gói tối thiểu (thư viện C musl và BusyBox), còn <code>node:22</code> dựa trên Debian và chứa nhiều gói hơn hẳn (công cụ biên dịch, thư viện hệ thống). Ít gói thì ít thành phần để Trivy báo lỗ hổng, và bề mặt tấn công thật cũng nhỏ hơn. Nhưng ít lỗ hổng được báo cáo không đồng nghĩa với an toàn hơn: Trivy chỉ báo các lỗ hổng đã biết trong cơ sở dữ liệu của nó, không thấy lỗi logic trong mã của nhóm (như thiếu kiểm soát truy cập hay injection), cấu hình sai, hay lỗ hổng chưa được công bố. Mức độ nghiêm trọng cũng không bằng khả năng bị khai thác: một lỗi HIGH trong gói không bao giờ được chạy có rủi ro thấp hơn nhiều so với một lỗi trong mã đang phục vụ yêu cầu. Số liệu của nhóm: <code>node:22-alpine</code> nặng 289 MB với 10 HIGH và 0 CRITICAL, còn <code>node:22</code> nặng 1,67 GB với 479 HIGH và 20 CRITICAL. Cả hai image đều có một nhóm 10 lỗ hổng HIGH giống nhau về số lượng, nhiều khả năng nằm ở thư viện Node.js của ứng dụng chứ không phải ở image nền, nên việc chọn Alpine không thay thế được việc cập nhật phụ thuộc.</p>
+<h3>3. Mô hình trách nhiệm chia sẻ</h3>
+<p>Thuộc MongoDB Atlas và Supabase: an ninh vật lý và hạ tầng, ảo hóa, vá và vận hành phần mềm cơ sở dữ liệu và kho tệp, TLS ở điểm cuối dịch vụ, sao lưu và nhân bản, sẵn sàng của nền tảng. Thuộc nhóm phát triển: mã ứng dụng (xác thực, phân quyền theo chủ sở hữu, chống injection), quản lý <code>JWT_SECRET</code>, khóa Supabase và chuỗi kết nối, cấu hình tài khoản (quyền tối thiểu cho người dùng cơ sở dữ liệu, quyết định mở 0.0.0.0/0, bucket Public hay riêng tư), vá thư viện npm và image nền, và chọn cách quét và theo dõi lỗ hổng.</p>
 </body>
 </html>
