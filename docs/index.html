@@ -165,26 +165,13 @@ e572ce46403e   notes1    0.00%     17.06MiB / 7.756GiB   0.21%     7</pre>
 <h2>Kết quả kiểm thử bảo mật</h2>
 <table>
 <tr><th>Tình huống</th><th>Mong đợi</th><th>Thực tế</th></tr>
-<tr><td><code>GET /notes</code> không token</td><td>401</td><td>[ĐIỀN]</td></tr>
-<tr><td><code>GET /notes</code> có token</td><td>200</td><td>[ĐIỀN]</td></tr>
-<tr><td>Đăng nhập với <code>{"email":{"$gt":""}}</code></td><td>401</td><td>[ĐIỀN]</td></tr>
-<tr><td>Người dùng B đọc, sửa, xóa ghi chú của A</td><td>404</td><td>[ĐIỀN]</td></tr>
-<tr><td>25 lần đăng nhập sai liên tiếp</td><td>429 từ lần thứ 21 trong 15 phút</td><td>[ĐIỀN: ví dụ "từ lần thứ …"; ghi rõ đã khởi động lại máy chủ trước khi đo hay chưa]</td></tr>
+<tr><td><code>GET /notes</code> không token</td><td>401</td><td>401</td></tr>
+<tr><td><code>GET /notes</code> có token</td><td>200</td><td>200</td></tr>
+<tr><td>Đăng nhập với <code>{"email":{"$gt":""}}</code></td><td>401</td><td>401</td></tr>
+<tr><td>Người dùng B đọc, sửa, xóa ghi chú của A</td><td>404</td><td>[ĐIỀN: 404, 404, 404]</td></tr>
+<tr><td>25 lần đăng nhập sai liên tiếp</td><td>429 từ lần thứ 21 trong 15 phút</td><td>15 lần 401 rồi 10 lần 429. Mã 429 bắt đầu ở lần thứ 16 của vòng lặp, tức yêu cầu thứ 21 trong cửa sổ 15 phút, vì 5 yêu cầu <code>/auth</code> trước đó (2 đăng ký, 2 đăng nhập, 1 thử injection) đã được tính. Chưa khởi động lại máy chủ trước khi đo.</td></tr>
 </table>
-<p><code>npm audit --omit=dev</code>: [ĐIỀN kết quả, ví dụ "found 0 vulnerabilities"]. Cảnh báo Dependabot: [ĐIỀN: có hoặc không].</p>
-
-<h2>Ảnh minh chứng</h2>
-<p>Lịch sử Git và cài đặt bảo mật của repo:</p>
-<p><img src="bai4/01-git-log.png" alt="Kết quả git log" style="max-width:100%"></p>
-<p><img src="bai4/02-push-protection.png" alt="Push protection và Dependabot" style="max-width:100%"></p>
-<p>Kiểm thử xác thực và phân quyền (401, 200, 404):</p>
-<p><img src="bai4/03-401-200.png" alt="Kiểm thử 401 và 200" style="max-width:100%"></p>
-<p><img src="bai4/04-404.png" alt="Kiểm thử chéo trả 404" style="max-width:100%"></p>
-<p>Giới hạn tốc độ (429):</p>
-<p><img src="bai4/05-429.png" alt="Giới hạn tốc độ trả 429" style="max-width:100%"></p>
-<p>Quét lỗ hổng:</p>
-<p><img src="bai4/06-trivy.png" alt="Kết quả Trivy và kích thước image" style="max-width:100%"></p>
-<p><img src="bai4/07-npm-audit-dependabot.png" alt="npm audit và Dependabot" style="max-width:100%"></p>
+<p><code>npm audit --omit=dev</code>: found 0 vulnerabilities. Cảnh báo Dependabot: [ĐIỀN: có hoặc không].</p>
 
 <h2>Phần C – So sánh quét lỗ hổng hai image</h2>
 <table>
