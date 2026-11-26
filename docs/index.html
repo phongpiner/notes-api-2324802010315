@@ -113,5 +113,44 @@ e572ce46403e   notes1    0.00%     17.06MiB / 7.756GiB   0.21%     7</pre>
 
 <h3>3. Mô phỏng giúp ích gì và có thể sai lệch ở đâu?</h3>
 <p>Mô phỏng cho phép thử nhiều cấu hình rẻ và nhanh trước khi thuê hạ tầng thật. Ví dụ lần 1 cho thấy 4 máy ảo 4 lõi không đặt vừa trên máy chủ 8 lõi, một lỗi mà bên ngoài thực tế sẽ tốn tiền mới phát hiện. Kết quả có thể sai lệch với thực tế vì mô hình đơn giản hóa: không có nhiễu từ các khách hàng khác trên cùng máy chủ, độ trễ mạng, hỏng hóc phần cứng hay biến động tải, và kết quả phụ thuộc hoàn toàn vào tham số đầu vào. Một số hành vi chỉ là đặc điểm của công cụ, như việc broker thử đặt lại máy ảo nhiều lần làm cloudlet bắt đầu muộn ở lần 1.</p>
+<hr>
+
+<h1 id="bai3">Bài 3: Lưu trữ phân tán – NoSQL và lưu trữ đối tượng</h1>
+
+<h2>Kiến trúc</h2>
+<p>API Node.js (Express) lưu ghi chú trong MongoDB Atlas (cụm miễn phí 3 nút, AWS Singapore) bằng Mongoose, và lưu tệp đính kèm trong bucket <code>attachments</code> của Supabase Storage (vùng Singapore). Cơ sở dữ liệu chỉ giữ URL của tệp (<code>attachmentUrl</code>). Mã nguồn: thư mục <code>src/</code> và <code>scripts/</code> của repo; thông tin kết nối nằm trong tệp <code>.env</code> (không commit).</p>
+
+<h2>Kiểm tra CRUD</h2>
+<table>
+<tr><th>Thao tác</th><th>Mã mong đợi</th><th>Mã thực tế</th></tr>
+<tr><td><code>POST /notes</code> (tạo)</td><td>201</td><td>201</td></tr>
+<tr><td><code>GET /notes?tag=nosql</code>, <code>GET /notes/:id</code></td><td>200</td><td>200, 200</td></tr>
+<tr><td><code>PUT /notes/:id</code></td><td>200</td><td>200</td></tr>
+<tr><td><code>POST /notes/:id/attachment</code></td><td>200, có <code>attachmentUrl</code></td><td>200, có <code>attachmentUrl</code></td></tr>
+<tr><td><code>DELETE /notes/:id</code> (lần 1, lần 2)</td><td>204, 404</td><td>204, 404</td></tr>
+<tr><td><code>POST /notes</code> thiếu <code>title</code>; <code>GET /notes/abc</code></td><td>400</td><td>400, 400</td></tr>
+</table>
+<p>Tệp thử mở được qua: <a href="https://sxvbyojacztccpkawkbb.supabase.co/storage/v1/object/public/attachments/6b07d951e18334d4e59bc07a/1795676497869-note.txt">attachmentUrl</a> (nội dung <code>Tệp thử</code>). Tệp vẫn mở được sau khi ghi chú đã bị xóa ở bước DELETE: xóa ghi chú trong MongoDB không xóa tệp trên Supabase, nên tệp trở thành tệp mồ côi và vẫn chiếm dung lượng cho đến khi dọn thủ công. Muốn tránh, phải xóa tệp trong kho khi xóa ghi chú.</p>
+
+<h2>Đo hiệu quả chỉ mục (<code>scripts/explain.js</code>)</h2>
+<p>Bộ sưu tập có 2.000 tài liệu (do <code>scripts/seed.js</code> chèn). Truy vấn: <code>{ tags: 'docker' }</code>, chỉ mục <code>{ tags: 1 }</code> (multikey).</p>
+<table>
+<tr><th>Cách truy vấn</th><th>docsExamined</th><th>returned</th><th>ms</th></tr>
+<tr><td>Quét toàn bộ (<code>$natural</code>)</td><td>2000</td><td>571</td><td>1</td></tr>
+<tr><td>Dùng chỉ mục</td><td>571</td><td>571</td><td>1</td></tr>
+</table>
+<p>Tỉ số docsExamined (quét toàn bộ / chỉ mục) = 2000 / 571 ≈ 3,5, tức chỉ mục giảm khối lượng quét khoảng 3,5 lần. Chỉ mục chỉ xem đúng 571 tài liệu khớp, bằng số tài liệu trả về. Thời gian chênh lệch không đo được vì cả hai cách đều ghi 1 ms (độ phân giải của <code>executionTimeMillis</code>), đúng như đề nói: với 2.000 tài liệu chênh lệch về thời gian nhỏ, nhưng chênh lệch về khối lượng quét thì rõ.</p>
+
+<h2>Sơ đồ Atlas và HDFS</h2>
+<p><img src="so-do-atlas-hdfs.png" alt="So sánh nhân bản của MongoDB Atlas 3 nút và HDFS" style="max-width:100%"></p>
+
+<h2>Câu hỏi phản biện</h2>
+<h3>1. Điều gì xảy ra khi có 2 triệu tài liệu?</h3>
+<p>Quét toàn bộ phải đọc mọi tài liệu nên docsExamined tăng tuyến tính: từ 2.000 lên khoảng 2.000.000 (tăng 1.000 lần). Chỉ mục chỉ đọc các tài liệu khớp, nên docsExamined bằng số tài liệu có thẻ <code>docker</code>; ở dữ liệu mẫu thẻ này gặp ở khoảng 2/7 tài liệu, tức khoảng 570.000 tài liệu. Vì tỉ lệ khớp không đổi khi dữ liệu lớn lên, tỉ số giữa hai cách vẫn chỉ cỡ 3,5 lần: chỉ mục trên một thẻ phổ biến giúp ít, và cả hai cách đều chậm đi theo kích thước dữ liệu. Truy vấn trên 2.000 tài liệu ghi 1 ms; nếu ngoại suy tuyến tính thì 2 triệu tài liệu cỡ 1.000 ms (khoảng 1 giây) mỗi truy vấn, nhưng con số 1 ms bị làm tròn nên đây chỉ là ước lượng rất thô, chưa đo. Với giới hạn 100 thao tác/giây của gói miễn phí, các truy vấn chậm như vậy sẽ xếp hàng chờ, và độ trễ tăng lên khi có nhiều người dùng đồng thời. Cách giảm tải: truy vấn có chọn lọc cao hơn (chỉ mục ghép như <code>{ tags: 1, createdAt: -1 }</code>), giới hạn và phân trang (API đã dùng <code>limit(50)</code>), và chỉ trả các trường cần thiết.</p>
+<h3>2. Vì sao lưu tệp trên Supabase Storage và chỉ lưu URL trong MongoDB?</h3>
+<p>Một tài liệu MongoDB bị giới hạn 16 MB, và gói miễn phí chỉ có 512 MB dung lượng (nên kiểm tra lại trong trang Atlas); lưu nội dung tệp vào tài liệu làm cạn dung lượng nhanh. Nội dung tệp cũng làm tài liệu nặng hơn: mỗi lần đọc ghi chú đều kéo cả tệp qua mạng, bộ nhớ đệm của cơ sở dữ liệu bị chiếm bởi dữ liệu nhị phân, và mọi byte phải được sao chép sang cả 3 nút của cụm, vào cả bản sao lưu. Kho đối tượng sinh ra để lưu tệp lớn rẻ hơn và phục vụ trực tiếp qua HTTP cho trình duyệt mà không qua API. Cơ sở dữ liệu chỉ giữ siêu dữ liệu nhỏ (tiêu đề, thẻ, URL), nhờ đó truy vấn và chỉ mục nhanh.</p>
+<h3>3. Số 3 của Atlas và HDFS</h3>
+<p>Mục tiêu chung: chịu lỗi. Với 3 bản, hệ thống vẫn còn dữ liệu và tiếp tục hoạt động khi mất một nút (trường hợp HDFS vẫn còn bản thứ hai và thứ ba trong khi khối được sao chép lại cho đủ 3). Ở Atlas, con số 3 còn cho phép bầu primary mới khi cần đa số (2/3 nút). Khác nhau ở đơn vị nhân bản: Atlas nhân bản toàn bộ tập dữ liệu, mọi nút giữ một bản đầy đủ và các secondary sao chép từ nhật ký thao tác (oplog) của primary; HDFS nhân bản từng khối (mặc định 128 MB), 3 bản của mỗi khối nằm trên 3 DataNode khác nhau và không DataNode nào giữ toàn bộ dữ liệu, còn NameNode chỉ giữ siêu dữ liệu về khối nằm ở đâu.</p>
+
 </body>
 </html>
